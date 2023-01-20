@@ -13,7 +13,7 @@ using NAudio;
 
 namespace AudioVisualizer
 {
-    public partial class Form1 : Form
+    public partial class SpotifyAudioVisualizer : Form
     {
         ez ez = new ez();
         Int16[] dataPCM;
@@ -29,7 +29,7 @@ namespace AudioVisualizer
         Pen pen2 = new Pen(Color.FromArgb(30, 215, 96));
         Brush brush1 = new SolidBrush(Color.White);
         Brush brush2 = new SolidBrush(Color.FromArgb(30, 215, 96));
-        public Form1()
+        public SpotifyAudioVisualizer()
         {
             InitializeComponent();
             AudioMonitorInitialize(0, sampleRate, bitRate);
@@ -81,7 +81,7 @@ namespace AudioVisualizer
             int amplitude = (int)(pictureBox1.Height * amplitude_factor);
             int y_min = pictureBox1.Height - bottomOffset;
             //g.DrawRectangle(pen2, 0, y_min-amplitude, pictureBox1.Width-1, amplitude);
-            int delta = (int)Math.Ceiling((double)pictureBox1.Width / (double)fftPoints);
+            int delta = (int)Math.Ceiling((double)pictureBox1.Width / 2 / (double)fftPoints);
             Pen pen = new Pen(Color.FromArgb(30, 215, 96), delta-1);
             if (dataFFT != null)
             {
@@ -89,12 +89,16 @@ namespace AudioVisualizer
                 {
                     //double[] data = NormalizeData(dataFFT);
                     for (int i = 0; i < fftPoints; i++)
-                    {    
+                    {
                         //if (dataFFT[i] > dataFFTValueCorrection[i])
                         //{
                         //    dataFFTValueCorrection[i] = dataFFT[i];
                         //}
-                        g.DrawLine(pen, i*delta, y_min, i*delta, y_min - (int)(dataFFT[i] * amplitude / dataFFTValueCorrection[i]));
+                        int x = i * delta;
+                        int y = y_min - (int)(dataFFT[i] * amplitude / dataFFTValueCorrection[i]);
+                        g.DrawLine(pen, x, y_min, x, y);
+                        g.DrawLine(pen, pictureBox1.Width - x, y_min, pictureBox1.Width - x, y);
+
                     }
                 }
                 //else
