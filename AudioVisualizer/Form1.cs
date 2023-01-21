@@ -15,7 +15,6 @@ namespace AudioVisualizer
         public static extern short GetAsyncKeyState(Keys vKey);
 
         OverLay overLay = new OverLay();
-        //ez ez = new Over();
         Int16[] dataPCM;
         double[] dataFFT;
         int[] dataFFTValueCorrection = { 1600, 1250, 950, 675, 310, 250, 230, 210, 160, 150, 140, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 120, 120, 120, 120, 120, 115, 110, 110, 110, 110, 100, 100, 100, 95, 90, 90, 90, 80, 70, 70, 70, 70, 70, 75, 75, 75, 75, 75, 75, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 60, 60, 60, 60, 60, 60, 60, 55, 50, 45, 45, 40, 35, 30, 25, 20, 15, 13, 12, 10 };
@@ -24,20 +23,30 @@ namespace AudioVisualizer
         int bitRate = 16;
         int fftPoints = 128;
 
-        float amplitude_factor = 0.5f;
-        float max_amplitude_factor = 3.0f;
-        bool amplitudeSliderSelected;
-        Point pos = new Point();
+        double amplitude_factor = 0.5;
+        double max_amplitude_factor = 5.0;
+        Point mousePos = new Point();
+        bool mouseDown;
 
-        Pen pen1 = new Pen(Color.White);
-        Pen pen2 = new Pen(Color.FromArgb(30, 215, 96));
-        Pen pen3 = new Pen(Color.FromArgb(165, 165, 165), 2);
-        Brush brush1 = new SolidBrush(Color.White);
-        Brush brush2 = new SolidBrush(Color.FromArgb(30, 215, 96));
+        Pen pen1;
+        Pen pen2;
+        Pen pen3;
 
-        Pen sliderPen1 = new Pen(Color.White, 4);
-        Pen sliderPen2 = new Pen(Color.FromArgb(30, 215, 96), 4);
-        Pen sliderPen3 = new Pen(Color.FromArgb(94, 94, 94), 4);
+        Brush brush1;
+        Brush brush2;
+        Brush brush3;
+
+        Pen sliderPen1;
+        Pen sliderPen2;
+        Pen sliderPen3;
+
+        Color colorTheme = Color.FromArgb(30, 215, 96);
+        Color colorBackground = Color.FromArgb(94, 94, 94);
+
+        private static Random rand = new Random();
+
+        Slider amplitudeSlider;
+
 
         public SpotifyAudioVisualizer()
         {
@@ -54,21 +63,36 @@ namespace AudioVisualizer
             this.WindowState = FormWindowState.Normal;
             pictureBox1.Location = new Point(0, 0);
             pictureBox1.Size = this.Size;
-            
+            UpdatePens();
+            amplitudeSlider = new Slider(new Point(52, 67), 180, 4, 6, max_amplitude_factor, amplitude_factor, colorBackground, Color.White, colorTheme);
+        }
+
+        private void UpdatePens()
+        {
+            pen1 = new Pen(Color.White);
+            pen2 = new Pen(colorTheme);
+            pen3 = new Pen(colorBackground, 2);
+
+            brush1 = new SolidBrush(Color.White);
+            brush2 = new SolidBrush(colorTheme);
+            brush3 = new SolidBrush(colorBackground);
+
+            sliderPen1 = new Pen(Color.White, 4);
+            sliderPen2 = new Pen(colorTheme);
+            sliderPen3 = new Pen(colorBackground, 4);
         }
 
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            //g.DrawRectangle(pen2, 0, 0, pictureBox1.Width-1, pictureBox1.Height-1);
             DrawWav(g);
             DrawFFT(g);
-            DrawAmplitudeSlider(g);
+            amplitudeSlider.Draw(g, pictureBox1.Size);
         }
 
-        private void DrawWav(Graphics g, int x = 0, int y = 3, int width = 251, int height = 50, int threshold = 15)
+        private void DrawWav(Graphics g, int x = 0, int y = 3, int width = 252, int height = 50, int threshold = 15, int frame = 3)
         {
-            g.FillRectangle(new SolidBrush(Color.Black), 20, 15, 35, 30);
+            g.FillRectangle(new SolidBrush(Color.Black), x, y - frame, width, height + 2 * frame);
             if (dataPCM != null)
             {
                 int max_value = dataPCM.Max();
@@ -77,7 +101,7 @@ namespace AudioVisualizer
                 {
                     for (int i = dataPCM.Length; i >= 0; i--)
                     {
-                        if (i % delta == 0 && i / delta <= width)
+                        if (i % delta == 0 && i / delta < width)
                         {
                             g.FillRectangle(brush2, x + i / delta, y + height / 2 + (dataPCM[i] * height) / (2 * max_value), 1, 1);
                         }
@@ -94,9 +118,9 @@ namespace AudioVisualizer
         {
             int amplitude = (int)(pictureBox1.Height * amplitude_factor);
             int y_min = pictureBox1.Height - bottomOffset;
-            //g.DrawRectangle(pen2, 0, y_min-amplitude, pictureBox1.Width-1, amplitude);
+
             double delta = (double)pictureBox1.Width / (double)(fftPoints * 2);
-            Pen pen = new Pen(Color.FromArgb(30, 215, 96), (int)delta-3);
+            Pen pen = new Pen(colorTheme, (int)delta-3);
             if (dataFFT != null)
             {
                 if (dataPCM.Max() > threshold)
@@ -111,26 +135,6 @@ namespace AudioVisualizer
                     }
                 }
             }
-        }
-
-        private void DrawAmplitudeSlider(Graphics g, int bottomOffset = 67, int rightOffset = 52, int width = 93)
-        {
-            int x = pictureBox1.Width - rightOffset - width;
-            int y = pictureBox1.Height - bottomOffset;
-            g.DrawLine(sliderPen3, x, y, x + width, y);
-            int current_width = (int)(amplitude_factor / max_amplitude_factor * width);
-            if (amplitudeSliderSelected)
-            {
-                g.DrawLine(sliderPen2, x, y, x + current_width, y);
-                g.FillEllipse(brush1, new Rectangle(x + current_width - 6, y - 6, 12, 12));
-            }
-            else
-            {
-                g.DrawLine(sliderPen1, x, y, x + current_width, y);
-            }
-            g.DrawLine(pen3, x - 16, y - 8, x - 24, y + 8);
-            g.DrawLine(pen3, x - 16, y - 8, x - 8, y + 8);
-            g.DrawLine(pen3, x - 21, y + 2, x - 11, y + 2);
         }
 
         private NAudio.Wave.WaveInEvent wvin;
@@ -179,49 +183,46 @@ namespace AudioVisualizer
         }
 
 
-        private void UpdateAmplitudeSlider(int x, int y, int bottomOffset = 67, int rightOffset = 52, int width = 93)
-        {
-            if (Math.Abs(pictureBox1.Height - bottomOffset - y) < 6 && x < pictureBox1.Width - rightOffset + 6 && x > pictureBox1.Width - rightOffset - width - 6)
-            {
-                amplitudeSliderSelected = true;
-                byte[] keys = BitConverter.GetBytes(GetAsyncKeyState(Keys.LButton));
-                if (keys[1] == 128)
-                {
-                    amplitude_factor = ((float)(x - (pictureBox1.Width - width - rightOffset)) / (float)width) * max_amplitude_factor;
-                    if (amplitude_factor < 0)
-                    {
-                        amplitude_factor = 0;
-                    }
-                }
-            }
-            else
-            {
-                amplitudeSliderSelected = false;
-            }
-        }
+        //private void UpdateAmplitudeSlider(int x, int y, int bottomOffset = 67, int rightOffset = 52, int width = 93)
+        //{
+        //    if (Math.Abs(pictureBox1.Height - bottomOffset - y) < 6 && x < pictureBox1.Width - rightOffset + 6 && x > pictureBox1.Width - rightOffset - width - 6)
+        //    {
+        //        amplitudeSliderSelected = true;
+        //        byte[] button = BitConverter.GetBytes(GetAsyncKeyState(Keys.LButton));
+        //        if (button[1] == 128)
+        //        {
+        //            amplitude_factor = ((float)(x - (pictureBox1.Width - width - rightOffset)) / (float)width) * max_amplitude_factor;
+        //            if (amplitude_factor < 0)
+        //            {
+        //                amplitude_factor = 0;
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        amplitudeSliderSelected = false;
+        //    }
+        //}
 
         private void UpdateMouse()
         {
-            GetCursorPos(ref pos);
-            int x = pos.X - this.Location.X;
-            int y = pos.Y - this.Location.Y;
-            if (x >= 0 && y >= 0)
+            GetCursorPos(ref mousePos);
+            if (BitConverter.GetBytes(GetAsyncKeyState(Keys.LButton))[1] == 128)
             {
-                if (x <= this.Width)
-                {
-                    if (y <= this.Height)
-                    {
-                        UpdateAmplitudeSlider(x ,y);
-                    }
-                }
+                mouseDown = true;
             }
-            
+            else
+            {
+                mouseDown = false;
+            }
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
             UpdateFFT();
             UpdateMouse();
+            amplitude_factor = amplitudeSlider.Update(pictureBox1.Size, this.Location, mousePos, mouseDown);
+
             pictureBox1.Invalidate();
         }
     }
