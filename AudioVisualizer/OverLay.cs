@@ -9,7 +9,7 @@ namespace AudioVisualizer
 {
     public class OverLay
     {
-        public static IntPtr hand;
+        public static IntPtr handle;
 
         [DllImport("user32.dll")]
         public static extern IntPtr FindWindow(string IpClassName, string IpWindowName);
@@ -33,9 +33,12 @@ namespace AudioVisualizer
             public int left, top, right, bottom;
         }
 
+        public bool isMaximized;
+        public bool isFullScreen;
+
         public void setHandle(string window_name)
         {
-            hand = FindWindow(null, window_name);
+            handle = FindWindow(null, window_name);
         }
 
         public void SetInvisibility(Form form)
@@ -49,7 +52,7 @@ namespace AudioVisualizer
 
         public void GetRect()
         {
-            GetWindowRect(hand, out rect);
+            GetWindowRect(handle, out rect);
         }
 
         public void ClickThrough(IntPtr formHandle)
@@ -71,7 +74,27 @@ namespace AudioVisualizer
             form.Size = CalibrateSize();
             form.Left = rect.left;
             form.Top = rect.top;
+            UpdateWindowState();
+        }
 
+        private void UpdateWindowState()
+        {
+            int windowStyle = GetWindowLong(handle, -16);
+            if ((windowStyle & 0x00040000L) == 0x00040000L && (windowStyle & 0x01000000L) != 0x01000000L)
+            {
+                isMaximized = false;
+                isFullScreen = false;
+            }
+            else if ((windowStyle & 0x00040000L) == 0x00040000L && (windowStyle & 0x01000000L) == 0x01000000L)
+            {
+                isMaximized = true;
+                isFullScreen = false;
+            }
+            else
+            {
+                isMaximized = false;
+                isFullScreen = true;
+            }
         }
 
         public void PauseLoop()
@@ -85,7 +108,7 @@ namespace AudioVisualizer
         }
         public void StartLoop(int frequency, string WindowName, Form form)
         {
-            while (hand == IntPtr.Zero)
+            while (handle == IntPtr.Zero)
             {
                 setHandle(WindowName);
             }
@@ -93,7 +116,6 @@ namespace AudioVisualizer
             lp.Start();
 
         }
-
 
 
 

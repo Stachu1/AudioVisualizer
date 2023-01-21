@@ -9,7 +9,7 @@ namespace AudioVisualizer
 {
     internal class Slider
     {
-        Point pos;
+        public Point pos;
         int length;
         int width;
         int selectThreshold;

@@ -36,10 +36,6 @@ namespace AudioVisualizer
         Brush brush2;
         Brush brush3;
 
-        Pen sliderPen1;
-        Pen sliderPen2;
-        Pen sliderPen3;
-
         Color colorTheme = Color.FromArgb(30, 215, 96);
         Color colorBackground = Color.FromArgb(94, 94, 94);
 
@@ -64,7 +60,7 @@ namespace AudioVisualizer
             pictureBox1.Location = new Point(0, 0);
             pictureBox1.Size = this.Size;
             UpdatePens();
-            amplitudeSlider = new Slider(new Point(52, 67), 180, 4, 6, max_amplitude_factor, amplitude_factor, colorBackground, Color.White, colorTheme);
+            amplitudeSlider = new Slider(new Point(52, 68), 180, 4, 6, max_amplitude_factor, amplitude_factor, colorBackground, Color.White, colorTheme);
         }
 
         private void UpdatePens()
@@ -76,18 +72,29 @@ namespace AudioVisualizer
             brush1 = new SolidBrush(Color.White);
             brush2 = new SolidBrush(colorTheme);
             brush3 = new SolidBrush(colorBackground);
-
-            sliderPen1 = new Pen(Color.White, 4);
-            sliderPen2 = new Pen(colorTheme);
-            sliderPen3 = new Pen(colorBackground, 4);
         }
 
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            DrawWav(g);
-            DrawFFT(g);
-            amplitudeSlider.Draw(g, pictureBox1.Size);
+            if (overLay.isFullScreen)
+            {
+                DrawFFT(g, 0);
+            }
+            else if (overLay.isMaximized)
+            {
+                DrawFFT(g, 99);
+                DrawWav(g, 7);
+                amplitudeSlider.pos = new Point(59, 77);
+                amplitudeSlider.Draw(g, pictureBox1.Size);
+            }
+            else
+            {
+                DrawFFT(g);
+                DrawWav(g);
+                amplitudeSlider.pos = new Point(52, 68);
+                amplitudeSlider.Draw(g, pictureBox1.Size);
+            }
         }
 
         private void DrawWav(Graphics g, int x = 0, int y = 3, int width = 252, int height = 50, int threshold = 15, int frame = 3)
@@ -114,7 +121,7 @@ namespace AudioVisualizer
             }
         }
 
-        private void DrawFFT(Graphics g, int bottomOffset = 91, int threshold = 15)
+        private void DrawFFT(Graphics g, int bottomOffset = 90, int threshold = 15)
         {
             int amplitude = (int)(pictureBox1.Height * amplitude_factor);
             int y_min = pictureBox1.Height - bottomOffset;
@@ -182,28 +189,6 @@ namespace AudioVisualizer
             }
         }
 
-
-        //private void UpdateAmplitudeSlider(int x, int y, int bottomOffset = 67, int rightOffset = 52, int width = 93)
-        //{
-        //    if (Math.Abs(pictureBox1.Height - bottomOffset - y) < 6 && x < pictureBox1.Width - rightOffset + 6 && x > pictureBox1.Width - rightOffset - width - 6)
-        //    {
-        //        amplitudeSliderSelected = true;
-        //        byte[] button = BitConverter.GetBytes(GetAsyncKeyState(Keys.LButton));
-        //        if (button[1] == 128)
-        //        {
-        //            amplitude_factor = ((float)(x - (pictureBox1.Width - width - rightOffset)) / (float)width) * max_amplitude_factor;
-        //            if (amplitude_factor < 0)
-        //            {
-        //                amplitude_factor = 0;
-        //            }
-        //        }
-        //    }
-        //    else
-        //    {
-        //        amplitudeSliderSelected = false;
-        //    }
-        //}
-
         private void UpdateMouse()
         {
             GetCursorPos(ref mousePos);
@@ -221,8 +206,10 @@ namespace AudioVisualizer
         {
             UpdateFFT();
             UpdateMouse();
-            amplitude_factor = amplitudeSlider.Update(pictureBox1.Size, this.Location, mousePos, mouseDown);
-
+            if (!overLay.isFullScreen)
+            {
+                amplitude_factor = amplitudeSlider.Update(pictureBox1.Size, this.Location, mousePos, mouseDown);
+            }
             pictureBox1.Invalidate();
         }
     }
