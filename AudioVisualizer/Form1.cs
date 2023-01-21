@@ -8,18 +8,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using ezOverLay;
 using NAudio;
 
 namespace AudioVisualizer
 {
     public partial class SpotifyAudioVisualizer : Form
     {
-        ez ez = new ez();
+        OverLay overLay = new OverLay();
+        //ez ez = new Over();
         Int16[] dataPCM;
         double[] dataFFT;
         int[] dataFFTValueCorrection = { 2000, 1243, 951, 674, 308, 250, 208, 209, 158, 148, 142, 104, 124, 115, 120, 139, 145, 134, 109, 131, 126, 141, 135, 186, 198, 149, 106, 133, 175, 152, 104, 139, 108, 101, 90, 124, 100, 124, 107, 103, 112, 121, 107, 95, 85, 102, 94, 89, 84, 89, 70, 59, 66, 105, 88, 98, 63, 62, 72, 82, 88, 65, 67, 63, 71, 66, 73, 76, 81, 73, 82, 68, 61, 58, 61, 65, 69, 82, 77, 81, 73, 62, 91, 93, 89, 91, 78, 76, 67, 66, 72, 71, 66, 62, 79, 104, 70, 50, 46, 60, 77, 85, 79, 96, 69, 58, 73, 70, 61, 56, 56, 61, 93, 93, 91, 55, 51, 41, 33, 38, 40, 35, 24, 18, 14, 11, 12, 11 };
-        //double[] dataFFTValueCorrection = new double[128];
 
         int sampleRate = 32_000;
         int bitRate = 16;
@@ -39,10 +38,13 @@ namespace AudioVisualizer
         private void Form1_Load(object sender, EventArgs e)
         {
             CheckForIllegalCrossThreadCalls = false;
-            ez.SetInvi(this);
-            ez.StartLoop(10, "Spotify Premium", this);
+            this.WindowState = FormWindowState.Minimized;
+            overLay.SetInvisibility(this);
+            overLay.StartLoop(10, "Spotify Premium", this);
+            this.WindowState = FormWindowState.Normal;
             pictureBox1.Location = new Point(0, 0);
             pictureBox1.Size = this.Size;
+            
         }
 
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
@@ -144,6 +146,8 @@ namespace AudioVisualizer
                 dataFFT[i] = fftLeft + fftRight;
             }
         }
+
+
 
         private void timer1_Tick(object sender, EventArgs e)
         {
