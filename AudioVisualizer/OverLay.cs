@@ -12,13 +12,7 @@ namespace AudioVisualizer
         public static IntPtr hand;
 
         [DllImport("user32.dll")]
-        public static extern short GetAsyncKeyState(Keys vKey);
-
-        [DllImport("user32.dll")]
         public static extern IntPtr FindWindow(string IpClassName, string IpWindowName);
-
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
 
         [DllImport("user32.dll")]
         public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
