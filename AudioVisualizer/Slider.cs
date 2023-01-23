@@ -7,37 +7,50 @@ using System.Drawing;
 
 namespace AudioVisualizer
 {
-    internal class Slider
+    public class Slider
     {
         public Point pos;
-        int length;
-        int width;
-        int selectThreshold;
-        double range;
-        double value;
-        Pen penBackground;
-        Pen penMain;
-        Pen penWhenSelected;
-        Brush brushMain;
+        public Point pos1;
+        public Point pos2;
+        public int length;
+        public int width;
+        public int selectThreshold;
+        public double range;
+        public double value;
+        public Color colorBackground;
+        public Color colorMain;
+        public Color colorWhenSelected;
+        public Pen penBackground;
+        public Pen penMain;
+        public Pen penWhenSelected;
+        public Brush brushMain;
         bool selected;
         bool hover;
-        int radius;
+        public int radius;
         
 
-        public Slider(Point pos, int length, int width, int selectThreshold, double range, double value, Color colorBackground, Color colorMain, Color colorWhenSelected)
+        public Slider(Point pos1, Point pos2, int length, int width, int selectThreshold, double range, double value, Color colorBackground, Color colorMain, Color colorWhenSelected)
         {
-            this.pos = pos;
+            this.pos1 = pos1;
+            this.pos2 = pos2;
             this.length = length;
             this.width = width;
             this.selectThreshold = selectThreshold;
             this.range = range;
             this.value = value;
-            
+            this.colorBackground = colorBackground;
+            this.colorMain = colorMain;
+            this.colorWhenSelected = colorWhenSelected;
+            radius = width * 3 / 2;
+            ApplyColor();
+        }
+
+        public void ApplyColor()
+        {
             penBackground = new Pen(colorBackground, width);
             penMain = new Pen(colorMain, width);
             penWhenSelected = new Pen(colorWhenSelected, width);
             brushMain = new SolidBrush(colorMain);
-            radius = width * 3 / 2;
         }
 
         public void Draw(Graphics g, Size picBoxSize)
@@ -57,29 +70,25 @@ namespace AudioVisualizer
             }
         }
 
-        public double Update(Size picBoxSize, Point picBoxPos, Point mousePos, bool mouseDown)
+        public double Update(Size picBoxSize, Point picBoxPos, Point mousePos, bool mouseClicked, bool mouseDown)
         {
             int dX = picBoxPos.X + picBoxSize.Width - mousePos.X - pos.X - length / 2;
             int dY = picBoxPos.Y + picBoxSize.Height - mousePos.Y - pos.Y - width / 2;
+            if (!mouseDown)
+            {
+                selected = false;
+            }
             if (Math.Abs(dX) <= length / 2 + selectThreshold && Math.Abs(dY) <= width / 2 + selectThreshold)
             {
                 hover = true;
-                if (mouseDown)
+                if (mouseClicked)
                 {
                     selected = true;
-                }
-                else
-                {
-                    selected = false;
                 }
             }
             else
             {
                 hover = false;
-                if (!mouseDown)
-                {
-                    selected = false;
-                }
             }
             if (selected)
             {

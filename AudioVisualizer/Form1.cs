@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using System.Collections.Generic;
 
 namespace AudioVisualizer
 {
@@ -24,17 +25,14 @@ namespace AudioVisualizer
         int fftPoints = 128;
 
         double amplitude_factor = 0.5;
-        double max_amplitude_factor = 5.0;
+        double max_amplitude_factor = 3.0;
+
         Point mousePos = new Point();
         bool mouseDown;
+        bool mouseClicked;
 
-        Pen pen1;
-        Pen pen2;
-        Pen pen3;
-
-        Brush brush1;
-        Brush brush2;
-        Brush brush3;
+        Pen colorPen;
+        Brush colorBrush;
 
         Color colorTheme = Color.FromArgb(30, 215, 96);
         Color colorBackground = Color.FromArgb(94, 94, 94);
@@ -42,6 +40,12 @@ namespace AudioVisualizer
         private static Random rand = new Random();
 
         Slider amplitudeSlider;
+        Slider RSlider;
+        Slider GSlider;
+        Slider BSlider;
+        List<Slider> SliderList = new List<Slider>();
+
+
 
 
         public SpotifyAudioVisualizer()
@@ -59,41 +63,47 @@ namespace AudioVisualizer
             this.WindowState = FormWindowState.Normal;
             pictureBox1.Location = new Point(0, 0);
             pictureBox1.Size = this.Size;
-            UpdatePens();
-            amplitudeSlider = new Slider(new Point(52, 68), 180, 4, 6, max_amplitude_factor, amplitude_factor, colorBackground, Color.White, colorTheme);
+            UpdateColor();
+            amplitudeSlider = new Slider(new Point(52, 68), new Point(59, 77), 180, 4, 6, max_amplitude_factor, amplitude_factor, colorBackground, Color.White, colorTheme);
+            RSlider = new Slider(new Point(52, 22), new Point(59, 31), 54, 4, 4, 255, 30, colorBackground, Color.White, Color.FromArgb(255, 0, 0));
+            GSlider = new Slider(new Point(115, 22), new Point(122, 31), 54, 4, 4, 255, 215, colorBackground, Color.White, Color.FromArgb(0, 255, 0));
+            BSlider = new Slider(new Point(178, 22), new Point(185, 31), 54, 4, 4, 255, 96, colorBackground, Color.White, Color.FromArgb(0, 0, 255));
+            SliderList.Add(amplitudeSlider);
+            SliderList.Add(RSlider);
+            SliderList.Add(GSlider);
+            SliderList.Add(BSlider);
         }
 
-        private void UpdatePens()
+        private void UpdateColor()
         {
-            pen1 = new Pen(Color.White);
-            pen2 = new Pen(colorTheme);
-            pen3 = new Pen(colorBackground, 2);
-
-            brush1 = new SolidBrush(Color.White);
-            brush2 = new SolidBrush(colorTheme);
-            brush3 = new SolidBrush(colorBackground);
+            colorPen = new Pen(colorTheme);
+            colorBrush = new SolidBrush(colorTheme);
         }
 
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
             if (overLay.isFullScreen)
-            {
+            {   
                 DrawFFT(g, 0);
             }
             else if (overLay.isMaximized)
             {
-                DrawFFT(g, 99);
+                DrawFFT(g, 99, 15, 5);
                 DrawWav(g, 7);
-                amplitudeSlider.pos = new Point(59, 77);
-                amplitudeSlider.Draw(g, pictureBox1.Size);
+                foreach (Slider slider in SliderList)
+                {
+                    slider.Draw(g, pictureBox1.Size);
+                }
             }
             else
             {
                 DrawFFT(g);
                 DrawWav(g);
-                amplitudeSlider.pos = new Point(52, 68);
-                amplitudeSlider.Draw(g, pictureBox1.Size);
+                foreach (Slider slider in SliderList)
+                {
+                    slider.Draw(g, pictureBox1.Size);
+                }
             }
         }
 
@@ -103,30 +113,30 @@ namespace AudioVisualizer
             if (dataPCM != null)
             {
                 int max_value = dataPCM.Max();
-                int delta = dataPCM.Length / width;
                 if (max_value > threshold)
                 {
+                    int delta = dataPCM.Length / width;
                     for (int i = dataPCM.Length; i >= 0; i--)
                     {
-                        if (i % delta == 0 && i / delta < width)
+                        if (i % delta == 0 && i / delta <= width)
                         {
-                            g.FillRectangle(brush2, x + i / delta, y + height / 2 + (dataPCM[i] * height) / (2 * max_value), 1, 1);
+                            g.FillRectangle(colorBrush, x + i / delta, y + height / 2 + (dataPCM[i] * height) / (2 * max_value), 1, 1);
                         }
                     }
                 }
                 else
                 {
-                    g.DrawLine(pen2, x, y + height / 2, x + width, y + height / 2);
+                    g.DrawLine(colorPen, x, y + height / 2, x + width, y + height / 2);
                 }
             }
         }
 
-        private void DrawFFT(Graphics g, int bottomOffset = 90, int threshold = 15)
+        private void DrawFFT(Graphics g, int bottomOffset = 90, int threshold = 15, int sideOffset = 0)
         {
             int amplitude = (int)(pictureBox1.Height * amplitude_factor);
             int y_min = pictureBox1.Height - bottomOffset;
 
-            double delta = (double)pictureBox1.Width / (double)(fftPoints * 2);
+            double delta = (double)(pictureBox1.Width - sideOffset * 2) / (double)(fftPoints * 2);
             Pen pen = new Pen(colorTheme, (int)delta-3);
             if (dataFFT != null)
             {
@@ -192,7 +202,16 @@ namespace AudioVisualizer
         private void UpdateMouse()
         {
             GetCursorPos(ref mousePos);
-            if (BitConverter.GetBytes(GetAsyncKeyState(Keys.LButton))[1] == 128)
+            byte[] values = BitConverter.GetBytes(GetAsyncKeyState(Keys.LButton));
+            if (values[0] == 1)
+            {
+                mouseClicked = true;
+            }
+            else
+            {
+                mouseClicked = false;
+            }
+            if (values[1] == 128)
             {
                 mouseDown = true;
             }
@@ -202,14 +221,35 @@ namespace AudioVisualizer
             }
         }
 
+
         private void timer1_Tick(object sender, EventArgs e)
         {
             UpdateFFT();
             UpdateMouse();
+            if (overLay.isMaximized)
+            {
+                foreach (Slider slider in SliderList)
+                {
+                    slider.pos = slider.pos2;
+                }
+            }
+            if (!overLay.isFullScreen && !overLay.isMaximized)
+            {
+                foreach (Slider slider in SliderList)
+                {
+                    slider.pos = slider.pos1;
+                }
+            }
             if (!overLay.isFullScreen)
             {
-                amplitude_factor = amplitudeSlider.Update(pictureBox1.Size, this.Location, mousePos, mouseDown);
+                amplitude_factor = amplitudeSlider.Update(pictureBox1.Size, this.Location, mousePos, mouseClicked, mouseDown);
+                colorTheme = Color.FromArgb((int)RSlider.Update(pictureBox1.Size, this.Location, mousePos, mouseClicked, mouseDown),
+                                            (int)GSlider.Update(pictureBox1.Size, this.Location, mousePos, mouseClicked, mouseDown),
+                                            (int)BSlider.Update(pictureBox1.Size, this.Location, mousePos, mouseClicked, mouseDown));
             }
+            UpdateColor();
+            amplitudeSlider.colorWhenSelected = colorTheme;
+            amplitudeSlider.ApplyColor();
             pictureBox1.Invalidate();
         }
     }
