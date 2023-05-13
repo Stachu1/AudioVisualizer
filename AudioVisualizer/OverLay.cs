@@ -68,7 +68,7 @@ namespace AudioVisualizer
             return size;
         }
 
-        public void Calibrate(string WindowName, Form form)
+        public void Calibrate(Form form)
         {
             GetRect();
             form.Size = CalibrateSize();
@@ -106,26 +106,33 @@ namespace AudioVisualizer
         {
             threadrunning = true;
         }
-        public void StartLoop(int frequency, string WindowName, Form form)
+
+        //public void StartLoop(int frequency, string WindowName, Form form)
+        //{
+        //    while (handle == IntPtr.Zero)
+        //    {
+        //        setHandle(WindowName);
+        //    }
+        //    Thread lp = new Thread(() => LOOP(frequency, WindowName, form)) { IsBackground = true };
+        //    lp.Start();
+
+        //}
+
+        public void StartLoop(IntPtr hndl, Form form, int frequency = 10)
         {
-            while (handle == IntPtr.Zero)
-            {
-                setHandle(WindowName);
-            }
-            Thread lp = new Thread(() => LOOP(frequency, WindowName, form)) { IsBackground = true };
+            handle = hndl;
+            Thread lp = new Thread(() => LOOP(form, frequency)) { IsBackground = true };
             lp.Start();
 
         }
 
-
-
-        public void LOOP(int frequency, string WindowName, Form form)
+        public void LOOP(Form form, int frequency)
         {
             while (true)
             {
                 if (threadrunning == true)
                 {
-                    Calibrate(WindowName, form);
+                    Calibrate(form);
 
                 }
                 Thread.Sleep(frequency);

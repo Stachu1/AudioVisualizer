@@ -4,6 +4,8 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Security;
 
 namespace AudioVisualizer
 {
@@ -14,6 +16,10 @@ namespace AudioVisualizer
 
         [DllImport("user32.dll")]
         public static extern short GetAsyncKeyState(Keys vKey);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr FindWindow(string IpClassName, string IpWindowName);
+
 
         OverLay overLay = new OverLay();
         Int16[] dataPCM;
@@ -26,6 +32,8 @@ namespace AudioVisualizer
 
         double amplitude_factor = 0.5;
         double max_amplitude_factor = 3.0;
+
+        IntPtr spotifyPtr;
 
         Point mousePos = new Point();
         bool mouseDown;
@@ -50,6 +58,7 @@ namespace AudioVisualizer
 
         public SpotifyAudioVisualizer()
         {
+            spotifyPtr = StartSpotify();
             InitializeComponent();
             AudioMonitorInitialize(0, sampleRate, bitRate);
         }
@@ -59,7 +68,7 @@ namespace AudioVisualizer
             CheckForIllegalCrossThreadCalls = false;
             this.WindowState = FormWindowState.Minimized;
             overLay.SetInvisibility(this);
-            overLay.StartLoop(10, "Spotify Premium", this);
+            overLay.StartLoop(spotifyPtr, this);
             this.WindowState = FormWindowState.Normal;
             pictureBox1.Location = new Point(0, 0);
             pictureBox1.Size = this.Size;
@@ -72,6 +81,23 @@ namespace AudioVisualizer
             SliderList.Add(RSlider);
             SliderList.Add(GSlider);
             SliderList.Add(BSlider);
+        }
+
+        private IntPtr StartSpotify()
+        {
+            foreach (var process in Process.GetProcessesByName("Spotify"))
+            {
+                process.Kill();
+            }
+            string username = System.Security.Principal.WindowsIdentity.GetCurrent().Name.ToString().Split('\\')[1];
+            string path = "C:\\Users\\" + username + "\\AppData\\Roaming\\Spotify\\Spotify.exe";
+            Process proc = Process.Start(path, "--win7");
+            IntPtr hndl = IntPtr.Zero;
+            while(hndl == IntPtr.Zero)
+            {
+                hndl = FindWindow(null, "Spotify Premium");
+            }
+            return hndl;
         }
 
         private void UpdateColor()
@@ -89,8 +115,8 @@ namespace AudioVisualizer
             }
             else if (overLay.isMaximized)
             {
-                DrawFFT(g, 99, 15, 5);
-                DrawWav(g, 7);
+                DrawFFT(g, 97, 15, 5);
+                DrawWav(g, 79, 8);
                 foreach (Slider slider in SliderList)
                 {
                     slider.Draw(g, pictureBox1.Size);
@@ -107,9 +133,9 @@ namespace AudioVisualizer
             }
         }
 
-        private void DrawWav(Graphics g, int x = 0, int y = 3, int width = 252, int height = 50, int threshold = 15, int frame = 3)
+        private void DrawWav(Graphics g, int x = 72, int y = 0, int width = 216, int height = 40, int threshold = 15, int frame = 3)
         {
-            g.FillRectangle(new SolidBrush(Color.Black), x, y - frame, width, height + 2 * frame);
+            g.FillRectangle(new SolidBrush(Color.Black), x, y, width, height);
             if (dataPCM != null)
             {
                 int max_value = dataPCM.Max();
@@ -118,7 +144,7 @@ namespace AudioVisualizer
                     int delta = dataPCM.Length / width;
                     for (int i = dataPCM.Length; i >= 0; i--)
                     {
-                        if (i % delta == 0 && i / delta <= width)
+                        if (i % delta == 0 && i / delta <= width - 1)
                         {
                             g.FillRectangle(colorBrush, x + i / delta, y + height / 2 + (dataPCM[i] * height) / (2 * max_value), 1, 1);
                         }
@@ -131,7 +157,7 @@ namespace AudioVisualizer
             }
         }
 
-        private void DrawFFT(Graphics g, int bottomOffset = 90, int threshold = 15, int sideOffset = 0)
+        private void DrawFFT(Graphics g, int bottomOffset = 88, int threshold = 15, int sideOffset = 0)
         {
             int amplitude = (int)(pictureBox1.Height * amplitude_factor);
             int y_min = pictureBox1.Height - bottomOffset;
