@@ -96,6 +96,10 @@ namespace AudioVisualizer
             while(hndl == IntPtr.Zero)
             {
                 hndl = FindWindow(null, "Spotify Premium");
+                if (hndl == IntPtr.Zero)
+                {
+                    hndl = FindWindow(null, "Spotify");
+                }
             }
             return hndl;
         }
