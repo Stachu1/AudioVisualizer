@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Drawing;
 
 namespace AudioVisualizer
@@ -27,7 +23,7 @@ namespace AudioVisualizer
         bool selected;
         bool hover;
         public int radius;
-        
+
 
         public Slider(Point pos1, Point pos2, int length, int width, int selectThreshold, double range, double value, Color colorBackground, Color colorMain, Color colorWhenSelected)
         {

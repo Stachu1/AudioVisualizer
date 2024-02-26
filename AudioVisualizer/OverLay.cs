@@ -107,17 +107,6 @@ namespace AudioVisualizer
             threadrunning = true;
         }
 
-        //public void StartLoop(int frequency, string WindowName, Form form)
-        //{
-        //    while (handle == IntPtr.Zero)
-        //    {
-        //        setHandle(WindowName);
-        //    }
-        //    Thread lp = new Thread(() => LOOP(frequency, WindowName, form)) { IsBackground = true };
-        //    lp.Start();
-
-        //}
-
         public void StartLoop(IntPtr hndl, Form form, int frequency = 10)
         {
             handle = hndl;

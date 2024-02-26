@@ -73,10 +73,10 @@ namespace AudioVisualizer
             pictureBox1.Location = new Point(0, 0);
             pictureBox1.Size = this.Size;
             UpdateColor();
-            amplitudeSlider = new Slider(new Point(52, 68), new Point(59, 77), 180, 4, 6, max_amplitude_factor, amplitude_factor, colorBackground, Color.White, colorTheme);
-            RSlider = new Slider(new Point(52, 22), new Point(59, 31), 54, 4, 4, 255, 30, colorBackground, Color.White, Color.FromArgb(255, 0, 0));
-            GSlider = new Slider(new Point(115, 22), new Point(122, 31), 54, 4, 4, 255, 215, colorBackground, Color.White, Color.FromArgb(0, 255, 0));
-            BSlider = new Slider(new Point(178, 22), new Point(185, 31), 54, 4, 4, 255, 96, colorBackground, Color.White, Color.FromArgb(0, 0, 255));
+            amplitudeSlider = new Slider(new Point(59, 86), new Point(67, 97), 180, 4, 6, max_amplitude_factor, amplitude_factor, colorBackground, Color.White, colorTheme);
+            RSlider = new Slider(new Point(59, 22), new Point(67, 32), 54, 4, 4, 255, 30, colorBackground, Color.White, Color.FromArgb(255, 0, 0));
+            GSlider = new Slider(new Point(122, 22), new Point(130, 32), 54, 4, 4, 255, 215, colorBackground, Color.White, Color.FromArgb(0, 255, 0));
+            BSlider = new Slider(new Point(185, 22), new Point(193, 32), 54, 4, 4, 255, 96, colorBackground, Color.White, Color.FromArgb(0, 0, 255));
             SliderList.Add(amplitudeSlider);
             SliderList.Add(RSlider);
             SliderList.Add(GSlider);
@@ -111,12 +111,12 @@ namespace AudioVisualizer
             Graphics g = e.Graphics;
             if (overLay.isFullScreen)
             {   
-                DrawFFT(g, 0);
+                DrawFFT(g, 0, 15, 0);
             }
             else if (overLay.isMaximized)
             {
-                DrawFFT(g, 97, 15, 5);
-                DrawWav(g, 79, 8);
+                DrawFFT(g, 120, 15, 5);
+                DrawWav(g, 79, 8, 400, 48);
                 foreach (Slider slider in SliderList)
                 {
                     slider.Draw(g, pictureBox1.Size);
@@ -124,8 +124,8 @@ namespace AudioVisualizer
             }
             else
             {
-                DrawFFT(g);
-                DrawWav(g);
+                DrawFFT(g, 109, 15, 0);
+                DrawWav(g, 80, 1, 400, 48);
                 foreach (Slider slider in SliderList)
                 {
                     slider.Draw(g, pictureBox1.Size);
@@ -133,12 +133,12 @@ namespace AudioVisualizer
             }
         }
 
-        private void DrawWav(Graphics g, int x = 72, int y = 0, int width = 216, int height = 40, int threshold = 15, int frame = 3)
+        private void DrawWav(Graphics g, int x, int y, int width, int height, int threshold = 15)
         {
-            g.FillRectangle(new SolidBrush(Color.Black), x, y, width, height);
+            g.FillRectangle(new SolidBrush(Color.Wheat), x, y, width, height);
             if (dataPCM != null)
             {
-                int max_value = dataPCM.Max();
+                int max_value = Math.Max(dataPCM.Max(), -dataPCM.Min());
                 if (max_value > threshold)
                 {
                     int delta = dataPCM.Length / width;
@@ -146,18 +146,18 @@ namespace AudioVisualizer
                     {
                         if (i % delta == 0 && i / delta <= width - 1)
                         {
-                            g.FillRectangle(colorBrush, x + i / delta, y + height / 2 + (dataPCM[i] * height) / (2 * max_value), 1, 1);
+                            g.FillRectangle(colorBrush, x + i / delta, y + height / 2 + (dataPCM[i] * height) / (2 * max_value) - 1, 1, 1);
                         }
                     }
                 }
                 else
                 {
-                    g.DrawLine(colorPen, x, y + height / 2, x + width, y + height / 2);
+                    g.DrawLine(colorPen, x, y + height / 2, x + width - 1, y + height / 2);
                 }
             }
         }
 
-        private void DrawFFT(Graphics g, int bottomOffset = 88, int threshold = 15, int sideOffset = 0)
+        private void DrawFFT(Graphics g, int bottomOffset = 109, int threshold = 15, int sideOffset = 0)
         {
             int amplitude = (int)(pictureBox1.Height * amplitude_factor);
             int y_min = pictureBox1.Height - bottomOffset;
