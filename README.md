@@ -28,13 +28,15 @@ Start the executable or complie it yourself.
 Your Spotify app should get restarted, and you should be able to see the overlay
 ![image](https://github.com/Stachu1/AudioVisualizerForSpotify/assets/77758413/2f2e13a2-fa3e-43a1-8893-8c7ddf3bf96b)
 
+<br>
+<br>
 
 ## Configuration
 The sliders on the bottom right corner can be used to change the color and amplitude of the FFT
 ![image](https://github.com/Stachu1/AudioVisualizerForSpotify/assets/77758413/3925005e-4b5c-422d-b1b9-54f19187273d)
 
-
-
+<br>
+<br>
 
 ## The overlay does auto-adjust to the Spotify window size
 ![image](https://github.com/Stachu1/AudioVisualizerForSpotify/assets/77758413/64a5a5ec-1f82-4f3e-8e63-23533ec5fbd5)
